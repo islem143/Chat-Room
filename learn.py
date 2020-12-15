@@ -2,6 +2,7 @@
 # import fcntl
 # import os
 # import selectors
+import threading
 
 # # set sys.stdin non-blocking
 # orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
@@ -27,5 +28,18 @@
 #         callback=key.data 
 #         callback(key.fileobj)
 
+def listen1():
+    cmd1=input('input1> ')
+    print(cmd1)
 
-print(len("sdqsd")>4)
+def listen2():
+    cmd2=input('input2> ')
+    print(cmd2)
+
+
+
+t1=threading.Thread(target=listen1)
+t2=threading.Thread(target=listen2)
+t1.start()
+t2.start()
+print('hello')

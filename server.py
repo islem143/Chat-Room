@@ -42,6 +42,7 @@ class Server:
         self.clients.append(clientSocket)
         userName = self.getuserName(clientSocket)
         data["userName"] = userName
+    
         sel.register(clientSocket, events, data)
         
 
@@ -62,13 +63,18 @@ class Server:
         clientSocket = key.fileobj
         data = key.data
         recivedData = clientSocket.recv(512)
-        if(recivedData):
+        if(len(recivedData)>0):
             print(f'Recived Data : {str(recivedData,ENCODIING)}')
             self.broadCastSend(f'{data["userName"]}:{str(recivedData,ENCODIING)}')
         else:
             print(f'Closing connection to{data["adress"]}')
-            clientSocket.close()
+            
             sel.unregister(clientSocket)
+            for i,socket in enumerate(self.clients):
+                if(socket.getsockname()[1]==clientSocket.getsockname()[1]):
+                    del self.clients[i]
+            clientSocket.close()        
+            
 
 
 server = Server('127.0.0.1', 5053)
