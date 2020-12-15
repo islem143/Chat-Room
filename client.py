@@ -6,12 +6,8 @@ import os
 
 sel = selectors.DefaultSelector()
 ENCODIING="utf-8"
-# set sys.stdin non-blocking
-orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
-fcntl.fcntl(sys.stdin, fcntl.F_SETFL, orig_fl | os.O_NONBLOCK)
 
-sel.register(sys.stdin,selectors.EVENT_READ,)
-print('hello')
+
 class Client:
     def connect(self,host,port):
         try:
@@ -19,7 +15,8 @@ class Client:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.connect((str(host),int(port)))
             self.socket=s
-            self.listen()
+            sel.register(s,selectors.EVENT_READ,self.listen)
+            #self.listen()
         except OSError as err:
             print(err)
             sys.exit()
@@ -27,29 +24,41 @@ class Client:
         userName=input("enter your userName:")
         self.userName=userName
         self.socket.send(bytes(self.userName,ENCODIING))
+        # set sys.stdin non-blocking
+        orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
+        fcntl.fcntl(sys.stdin, fcntl.F_SETFL, orig_fl | os.O_NONBLOCK)
+        sel.register(sys.stdin,selectors.EVENT_READ,client.sendMessage)
     def listen(self):
-        while True:
             recv_data=self.socket.recv(512)    
             if(str(recv_data,ENCODIING)=="userName"):
                 self.sendUserName()
             elif(len(recv_data)>0):
                 print(str(recv_data,ENCODIING))
-                self.sendMessage()
             else:
                 self.socket.close()
                 sys.exit()
-    def sendMessage(self):
-        message=input('enter the messsage: ')
-        self.socket.send(bytes(message,ENCODIING))
-
+    def sendMessage(self,stdin):
+        message=stdin.read()
+        if len(str(message))>0:
+            self.socket.send(bytes(str(message),ENCODIING))
+        
 
 
             
 
-    
-
-
-
 
 client=Client()
 client.connect('127.0.0.1',5053)
+
+
+while True:
+    events=sel.select()
+    for key,mask in events:
+        if(key.data==client.listen):
+            callback=key.data
+            callback()
+        elif(key.data==client.sendMessage):
+            callback=key.data
+            callback(key.fileobj)
+
+

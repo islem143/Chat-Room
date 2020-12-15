@@ -7,10 +7,7 @@ sel = selectors.DefaultSelector()
 
 ENCODIING = "utf-8"
 
-# set sys.stdin non-blocking
-orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
-fcntl.fcntl(sys.stdin, fcntl.F_SETFL, orig_fl | os.O_NONBLOCK)
-sel.register(sys.stdin,selectors.EVENT_READ,)
+
 
 class Server:
     clients=[]
