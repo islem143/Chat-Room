@@ -20,7 +20,10 @@ class Client:
             print(err)
             sys.exit()
     def sendUserName(self):
-        self.socket.send(bytes(self.userName,ENCODIING))
+        try:
+           self.socket.send(bytes(self.userName,ENCODIING))
+        except :
+           print('sending userName failed') 
     def initThreads(self):
         listenThread=threading.Thread(target=self.listen)
         listenThread.start()
